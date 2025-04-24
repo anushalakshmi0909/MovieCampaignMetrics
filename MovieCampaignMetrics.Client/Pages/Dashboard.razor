@@ -1,0 +1,102 @@
+﻿@page "/dashboard"
+@inject HttpClient Http
+@using MovieCampaignMetrics.Shared;
+
+<h3>YouTube Metrics Dashboard</h3>
+
+<textarea class="form-control" rows="3" placeholder="Enter Video IDs (comma separated)" @bind="videoIds"></textarea>
+<input class="form-control mt-2" placeholder="API Key" @bind="apiKey" />
+<button class="btn btn-success mt-2" @onclick="FetchMetrics">Fetch Metrics</button>
+
+<button class="btn btn-primary mt-2" @onclick="LoadStoredMetrics">Load Stored Metrics</button>
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else if (metricsList?.Any() == true)
+{
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Views</th>
+                <th>Likes</th>
+                <th>Comments</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var metric in metricsList)
+            {
+                <tr>
+                    <td>@metric.Title</td>
+                    <td>@metric.ViewCount</td>
+                    <td>@metric.LikeCount</td>
+                    <td>@metric.CommentCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mt-4 alert alert-info">
+        <b>Total Views:</b> @metricsList.Sum(m => long.Parse(m.ViewCount ?? "0"))<br />
+        <b>Total Likes:</b> @metricsList.Sum(m => long.Parse(m.LikeCount ?? "0"))<br />
+        <b>Total Comments:</b> @metricsList.Sum(m => long.Parse(m.CommentCount ?? "0"))
+    </div>
+}
+else if (error != null)
+{
+    <p class="text-danger">@error</p>
+}
+
+@code {
+    private string videoIds;
+    private string apiKey;
+    private List<YouTubeMetrics> metricsList = new();
+    private bool isLoading = false;
+    private string error;
+
+    private async Task FetchMetrics()
+    {
+        error = null;
+        isLoading = true;
+        metricsList.Clear();
+
+        var ids = videoIds?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        try
+        {
+            foreach (var id in ids)
+            {
+                var metric = await Http.GetFromJsonAsync<YouTubeMetrics>($"api/youtube/{id}?apiKey={apiKey}");
+                if (metric != null)
+                    metricsList.Add(metric);
+            }
+        }
+        catch
+        {
+            error = "Something went wrong fetching metrics.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadStoredMetrics()
+    {
+        isLoading = true;
+        try
+        {
+            metricsList = await Http.GetFromJsonAsync<List<YouTubeMetrics>>("api/youtube");
+        }
+        catch
+        {
+            error = "Failed to load stored metrics.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

@@ -1,0 +1,27 @@
+﻿@page "/youtube"
+@inject HttpClient Http
+@using MovieCampaignMetrics.Shared;
+<h3>YouTube Metrics</h3>
+
+<input placeholder="Video ID" @bind="videoId" />
+<input placeholder="API Key" @bind="apiKey" />
+<button @onclick="FetchYouTubeMetrics">Fetch</button>
+
+@if (metrics != null)
+{
+    <p><b>Title:</b> @metrics.Title</p>
+    <p><b>Views:</b> @metrics.ViewCount</p>
+    <p><b>Likes:</b> @metrics.LikeCount</p>
+    <p><b>Comments:</b> @metrics.CommentCount</p>
+}
+
+@code {
+    private string videoId;
+    private string apiKey;
+    private YouTubeMetrics metrics;
+
+    private async Task FetchYouTubeMetrics()
+    {
+        metrics = await Http.GetFromJsonAsync<YouTubeMetrics>($"api/youtube/{videoId}?apiKey={apiKey}");
+    }
+}
