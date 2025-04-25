@@ -15,4 +15,8 @@
     <ProjectReference Include="..\MovieCampaignMetrics.Shared\MovieCampaignMetrics.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
+
 </Project>
