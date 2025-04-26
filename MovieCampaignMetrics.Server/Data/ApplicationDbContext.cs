@@ -12,5 +12,7 @@ namespace MovieCampaignMetrics.Server.Data
         }
 
         public DbSet<YouTubeMetrics> YouTubeMetrics { get; set; }
+        public DbSet<TwitterMetrics> TwitterMetrics { get; set; }
+
     }
 }
